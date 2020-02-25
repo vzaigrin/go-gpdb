@@ -9,6 +9,7 @@ This repository is split into two parts
 + Gpdb cli
     > The gpdb cli helps to download, install, remove and manage the software of GPDB / GPCC.)
 
+If you are interested in creating demo database / table and loading fake data to those table for testing purpose, check out the [project mock-data](https://github.com/pivotal-gss/mock-data)
     
 Table of Contents
 =================

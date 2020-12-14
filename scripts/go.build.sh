@@ -100,7 +100,7 @@ download_latest_gpdb_cli() {
     spinner $! "Cleaning up old gpdb releases"
 
     # Download the latest build or release of gpdb cli
-    { curl -s https://api.github.com/repos/pivotal-gss/go-gpdb/releases/latest \
+    { curl -s https://api.github.com/repos/greenplum-db/go-gpdb/releases/latest \
       | grep "browser_download_url.*gpdb" \
       | grep -v "browser_download_url.*datalab" \
       | cut -d : -f 2,3 \

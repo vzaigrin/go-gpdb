@@ -15,7 +15,7 @@ yum install -y sshpass sudo wget
 ```sh
 # Download the latest gpdb installer release
 cd ~
-curl -s https://api.github.com/repos/pivotal-gss/go-gpdb/releases/latest \
+curl -s https://api.github.com/repos/greenplum-db/go-gpdb/releases/latest \
       | grep "browser_download_url.*gpdb" \
       | grep -v "browser_download_url.*datalab" \
       | cut -d : -f 2,3 | tr -d \" \

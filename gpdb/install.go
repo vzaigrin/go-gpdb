@@ -58,6 +58,7 @@ const (
 	defaultWebSocket           = 8899
 	defaultGPVmemProtectLimit  = 2048
 	defaultStatementMem        = "180MB"
+	lockfilename               = "dualinstall.lck"
 )
 
 func install() {
@@ -77,11 +78,12 @@ func install() {
 	Debugf("Is this single or multi node installation: %s", i.SingleORMulti)
 
 	// Check for a lockfile and if none continue.
-	file := checkLock("/tmp", "dualinstall.lck")
+	file := checkLock("/tmp", lockfilename)
 
 	createFile(file)
 
 	defer deleteFile(file)
+
 
 	// Get or Generate the hostname file
 	i.generateHostFile()

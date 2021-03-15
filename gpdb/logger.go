@@ -107,6 +107,8 @@ func Errorf(format string, args ...interface{}) {
 
 // Fatal logs a message at level Fatal on the standard logger.
 func Fatal(args ...interface{}) {
+
+    deleteFile("/tmp" + lockfilename)
 	if logger.Level >= logrus.FatalLevel {
 		entry := logger.WithFields(logrus.Fields{})
 		if cmdOptions.Debug {
@@ -118,6 +120,7 @@ func Fatal(args ...interface{}) {
 
 // Fatal logs with format message at level Fatal on the standard logger.
 func Fatalf(format string, args ...interface{}) {
+	deleteFile("/tmp" + lockfilename)
 	if logger.Level >= logrus.FatalLevel {
 		entry := logger.WithFields(logrus.Fields{})
 		if cmdOptions.Debug {

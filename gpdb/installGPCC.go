@@ -65,7 +65,7 @@ func (i *Installation) installGPCCProduct() {
 	// Hostfile is create by the install gpdb, since we can't run the
 	// install gpcc without gpdb, so we use the file created by the install gpdb
 	i.WorkingHostFileLocation = os.Getenv("HOME") + "/hostfile"
-	exists, _  := doesFileOrDirExists(i.WorkingHostFileLocation)
+	exists, _ := doesFileOrDirExists(i.WorkingHostFileLocation)
 	if !exists {
 		Fatalf("No host file found on the home location of the user")
 	}
@@ -200,15 +200,15 @@ func (i *Installation) verifyGpperfmon() {
 
 // Generate command center instance name
 func commandCenterInstanceName() string {
-	return fmt.Sprintf("ccversion_%s_%s", strings.Replace(cmdOptions.Version,".", "", -1), strings.Replace(cmdOptions.CCVersion,".", "", -1))
+	return fmt.Sprintf("ccversion_%s_%s", strings.Replace(cmdOptions.Version, ".", "", -1), strings.Replace(cmdOptions.CCVersion, ".", "", -1))
 }
 
 // Create configuration file
 func (i *Installation) createGPCCCOnfigurationFile() string {
-	i.GPCC.InstancePort = i.validatePort( "GPCC_PORT", defaultGpccPort)
-	i.GPCC.WebSocketPort = i.validatePort( "WEBSOCKET_PORT", defaultWebSocket)
+	i.GPCC.InstancePort = i.validatePort("GPCC_PORT", defaultGpccPort)
+	i.GPCC.WebSocketPort = i.validatePort("WEBSOCKET_PORT", defaultWebSocket)
 	i.GPCC.InstanceName = commandCenterInstanceName()
-	gpccInstallConfig := Config.CORE.TEMPDIR + fmt.Sprintf("gpcc_config_4x_%s", i.Timestamp)
+	gpccInstallConfig := Config.CORE.TEMPDIR + fmt.Sprintf("gpcc_config_%s_%s", cmdOptions.CCVersion, i.Timestamp)
 	deleteFile(gpccInstallConfig)
 	createFile(gpccInstallConfig)
 	writeFile(gpccInstallConfig, []string{
@@ -276,8 +276,8 @@ func (i *Installation) InstallGPCCBinariesIfMultiHost() {
 // Install the web interface for GPCC below 4.x
 func (i *Installation) InstallWebUIBelow4x() {
 	Infof("Running the setup for installing GPCC WEB UI for command center version: %s", cmdOptions.CCVersion)
-	i.GPCC.InstancePort = i.validatePort( "GPCC_PORT", defaultGpccPort)
-	i.GPCC.WebSocketPort = i.validatePort( "WEBSOCKET_PORT", defaultWebSocket) // Safe Guard to prevent 4.x and below clash
+	i.GPCC.InstancePort = i.validatePort("GPCC_PORT", defaultGpccPort)
+	i.GPCC.WebSocketPort = i.validatePort("WEBSOCKET_PORT", defaultWebSocket) // Safe Guard to prevent 4.x and below clash
 	i.GPCC.InstanceName = commandCenterInstanceName()
 	var scriptOption []string
 
@@ -286,7 +286,7 @@ func (i *Installation) InstallWebUIBelow4x() {
 	// so we will leave this as it is
 	if strings.HasPrefix(cmdOptions.CCVersion, "1") { // CC Version 1.x
 		scriptOption = []string{i.GPCC.InstanceName, "n", i.GPCC.InstanceName, i.GPInitSystem.MasterPort, i.GPCC.InstancePort, "n", "n", "n", "n", "EOF"}
-	} else if strings.HasPrefix(cmdOptions.CCVersion, "2.5") || strings.HasPrefix(cmdOptions.CCVersion, "2.4")  { // Option of CC 2.5 & after
+	} else if strings.HasPrefix(cmdOptions.CCVersion, "2.5") || strings.HasPrefix(cmdOptions.CCVersion, "2.4") { // Option of CC 2.5 & after
 		scriptOption = []string{i.GPCC.InstanceName, "n", i.GPCC.InstanceName, i.GPInitSystem.MasterPort, i.GPCC.InstancePort, strconv.Itoa(strToInt(i.GPCC.InstancePort) + 1), "n", "n", "n", "n", "EOF"}
 	} else if strings.HasPrefix(cmdOptions.CCVersion, "2.1") || strings.HasPrefix(cmdOptions.CCVersion, "2.0") { // Option of CC 2.0 & after
 		scriptOption = []string{i.GPCC.InstanceName, "n", i.GPCC.InstanceName, i.GPInitSystem.MasterPort, "n", i.GPCC.InstancePort, "n", "n", "n", "n", "EOF"}

@@ -14,7 +14,7 @@ const (
 	EndPoint                     = "https://network.pivotal.io"
 	RefreshToken                 = EndPoint + "/api/v2/authentication/access_tokens"
 	Products                     = EndPoint + "/api/v2/products"
-	ProductSlug                  = "pivotal-gpdb" // we only care about this slug rest we ignore
+	ProductSlug                  = "vmware-tanzu-greenplum" // we only care about this slug rest we ignore # old slug "pivotal-gpdb"
 	CommandCenterSlug            = "gpdb-command-center"
 	OpenSourceReleaseAPIEndpoint = "https://api.github.com/repos/greenplum-db/gpdb/releases"
 )

@@ -25,6 +25,7 @@ chmod +x gpdb
 
 wget https://raw.githubusercontent.com/pivotal-gss/go-gpdb/master/gpdb/config.yml
 sed -i "s/gpadmin/${USER}/g" config.yml
+mkdir -p data src
 sed -i "s|/data|data|g" config.yml
 sed -i "s|/usr/local/src|src|g" config.yml
 

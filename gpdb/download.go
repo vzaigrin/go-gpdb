@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zcalusic/sysinfo"
 	"os"
 	"strconv"
 	"strings"
@@ -31,6 +32,9 @@ var (
 		`((Red Hat Enterprise|RedHat Enterprise|RedHat Entrerprise) Linux|RHEL).*?(7))`
 	// Open Source release
 	rx_open_source_gpdb = `greenplum-(db|database)-(\d+\.)(\d+\.)(\d+)?(\-beta)?(\.\d)?-rhel7-x86_64.rpm`
+	// Ubuntu greenplum release
+	rx_gpdb_ubuntu_release_open_source = `greenplum-(db|database)-(\d+\.)(\d+\.)(\d+)-ubuntu.*`
+	rx_gpdb_ubuntu_release = `Greenplum Database (\d+\.)(\d+\.)(\d+) Installer for Ubuntu.*`
 )
 
 // Struct to where all the API response will be stored
@@ -244,6 +248,23 @@ type GithubReleases []struct {
 	Body       string `json:"body"`
 }
 
+// We only take in the below information from the sysinfo package
+// Rest we can ignore
+type SysInformation struct {
+	Os struct {
+		Name         string `json:"name"`
+		Vendor       string `json:"vendor"`
+		Version      string `json:"version"`
+		Release      string `json:"release"`
+		Architecture string `json:"architecture"`
+	} `json:"os"`
+	Kernel struct {
+		Release      string `json:"release"`
+		Version      string `json:"version"`
+		Architecture string `json:"architecture"`
+	} `json:"kernel"`
+}
+
 // Extract all the Pivotal Network Product from the Product API page.
 func (r *Responses) extractProduct(token string) {
 	Info("Obtaining the product ID")
@@ -270,6 +291,42 @@ func AreYourLookingForGPCCForGPDB524AndAbove() bool {
 	if YesOrNoConfirmation() == "y" {
 		return true
 	}
+	return false
+}
+
+// Get the system information
+func getSystemInfoAndCheckIfItsUbuntu() bool {
+	Debug("Checking the OS flavour ")
+	var si sysinfo.SysInfo
+	var sio SysInformation
+
+	// Get the system information
+	si.GetSysInfo()
+	data, err := json.MarshalIndent(&si, "", "  ")
+	if err != nil {
+		Fatalf("Unable to extract the system information, err: %v", err)
+	}
+
+	// Store all the system information on the system struct
+	err = json.Unmarshal(data, &sio)
+	if err != nil {
+		Fatalf("Unable to unmarshal the system information list: %v", err)
+	}
+
+	// GPDB only works with ubuntu 16 and higher
+	var validVersion float64 = 18
+	OsName := strings.Contains(strings.ToLower(sio.Os.Name), "ubuntu")
+	v := extractVersion(sio.Os.Version)
+	if v < validVersion && OsName {
+		Fatalf("GPDB installation only works with version of ubuntu > %v", validVersion)
+	}
+
+	// Check if its ubuntu release of OS
+	Debugf("The OS flavour of the machine is: %s", sio.Os.Name)
+	if OsName {
+		return true
+	}
+
 	return false
 }
 
@@ -388,7 +445,6 @@ func (g *GithubReleases) fetchOpenSourceReleases() (string, string, int64) {
 
 // Download the the product from PivNet
 func Download() {
-
 	// If the users asked for show them what products where downloaded
 	// then show them the list
 	if cmdOptions.ListEnv {
@@ -477,7 +533,9 @@ func displayDownloadedProducts(whichType string) []string {
 				sizeInMB(sizeOfFile), v))
 		} else { // Install command called this, so show only the DB related files
 			if strings.HasPrefix(downloadedProduct, "greenplum-db") &&
-				strings.HasSuffix(downloadedProduct, "zip") || strings.HasSuffix(downloadedProduct, "rpm") {
+				strings.HasSuffix(downloadedProduct, "zip") ||
+				strings.HasSuffix(downloadedProduct, "rpm") ||
+				strings.HasSuffix(downloadedProduct, "deb") {
 				index = index + 1
 				output = append(output, fmt.Sprintf("%d|%s|%d|%s", index, downloadedProduct,
 					sizeInMB(sizeOfFile), v))

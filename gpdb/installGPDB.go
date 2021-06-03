@@ -15,6 +15,15 @@ func (i *Installation) preGPDBChecks() {
 	// Validate the master & segment exists and is readable
 	dirValidator()
 
+	// Error out if there is multiple installation of GPDB
+	allEnv := ListEnvironmentsInstalled("*")
+	if len(allEnv) > 0 && getSystemInfoAndCheckIfItsUbuntu() {
+		Warnf("Currently having multiple installation of GPDB isn't supported on Ubuntu")
+		Warnf("Please use \"%s remove -v <version>\", to remove the old version " +
+			"or to make room for this installation", programName)
+		Fatalf("Already GPDB is installed on this box...")
+	}
+
 	// Check if there is already a version of GPDB installed
 	installedEnvFiles(fmt.Sprintf("*%s*", cmdOptions.Version), "confirm", true)
 }
@@ -86,7 +95,10 @@ func (i *Installation) installProduct() {
 	binFile, isItBinaryFile := getBinaryFile(cmdOptions.Version)
 
 	// Is this a binary or rpm file
-	if isItBinaryFile {
+	if getSystemInfoAndCheckIfItsUbuntu() {
+		// Located a deb file
+		i.installDebFile(binFile)
+	} else if isItBinaryFile {
 		// Located a binary file
 		i.installBinaryFile(binFile)
 		i.BinaryOrRpm = "binary"
@@ -165,7 +177,7 @@ func (i *Installation) setUpHost() {
 	Infof("Setting up & Checking if the host is reachable")
 
 	// Get the hostname of the master
-	i.GPInitSystem.MasterHostname = os.Getenv("HOSTNAME")
+	i.GPInitSystem.MasterHostname, _ = os.Hostname()
 	if i.GPInitSystem.MasterHostname == "" {
 		Fatalf("The environment variable 'HOSTNAME' for master host is not set")
 	}
@@ -332,6 +344,16 @@ func (i *Installation) rpmInstallOnAllSegmentHost() {
 	generateBashFileAndExecuteTheBashFile(gpsshFilename, "/bin/sh", []string{
 		fmt.Sprintf("%s -f %s \"sudo yum install -y %s\" &> /dev/null", gpsshExecutable, i.SegInstallHostLocation, destinationFileName),
 	})
+}
+
+// Install deb related GPDB software
+func (i *Installation) installDebFile(debFile string) {
+	Infof("Using deb file %s to install GPDB, this might take several minutes ....", debFile)
+	baseDir := "/usr/local/"
+	executeOsCommand("sudo", "apt", "install", debFile, "-y")
+
+	// Find the directory where the rpm was installed
+	i.BinaryInstallationLocation = locateGreenplumInstallationDirectory(baseDir)
 }
 
 // On the newer version of the GPDB they need the soft link for

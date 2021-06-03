@@ -13,7 +13,7 @@ func (i *Installation) createUninstallScript() error {
 
 	// Query
 	queryString := `
-select $$ssh $$ || hostname || $$ "ps -ef|grep postgres|grep -v grep|grep $$ ||  port || $$ | awk '{print \$2}'| xargs -n1 /bin/kill -11 &>/dev/null" $$ from gp_segment_configuration 
+select $$ssh $$ || hostname || $$ "ps -ef|grep postgres|grep -v grep|grep $$ ||  port || $$ | awk '{print \$2}'| xargs -n1 /bin/kill -11 >/dev/null 2>&1" $$ from gp_segment_configuration 
 union
 select $$ssh $$ || hostname || $$ "rm -rf /tmp/.s.PGSQL.$$ || port || $$*"$$ from gp_segment_configuration
 union
@@ -140,10 +140,10 @@ func remove() {
 		timestamp = strings.Split(chosenEnvFile, "_")[2]
 		version = strings.Split(chosenEnvFile, "_")[1]
 	}
-	Infof("The choosen enviornment file to remove is: %s ", chosenEnvFile)
+	Infof("The chosen environment file to remove is: %s ", chosenEnvFile)
 	Info("Uninstalling the environment")
 
-	// If there is failure in gpstart, user can use force to force manual uninstallation
+	// If there is failure in gpstart, user can use force to force manual uninstall
 	if !cmdOptions.Force {
 		err := removeEnvGpDeleteSystem(chosenEnvFile)
 		if err != nil {

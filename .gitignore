@@ -15,5 +15,5 @@ notes
 UAA.token
 
 # Ignore binaries
-gpdb/gpdb
-datalab/datalab
+#gpdb/gpdb
+#datalab/datalab
